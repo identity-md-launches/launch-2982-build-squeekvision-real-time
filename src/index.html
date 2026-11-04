@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SqueekVision · SqueekChain network dashboard</title>
+<meta name="description" content="Live SqueekChain dashboard: Squeektoshi wheel status, next block progress, $SQK supply, settlements and contracts on Sepolia, refreshed every 15 seconds.">
+<meta name="theme-color" content="#0b0e12">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SqueekVision · SqueekChain network dashboard">
+<meta property="og:description" content="Wheel status, block progress, $SQK supply and settlements for SqueekChain, live.">
+<meta property="og:image" content="./og-image.svg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./styles.css">
+<script type="module" src="./app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to dashboard</a>
+
+<header class="top">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      <path d="M16 3v26M3 16h26M6.8 6.8l18.4 18.4M25.2 6.8 6.8 25.2" stroke="currentColor" stroke-width="1.5" opacity=".55"/>
+      <circle cx="16" cy="16" r="3.5" fill="currentColor"/>
+    </svg>
+    <div>
+      <h1>SqueekVision</h1>
+      <p class="lede">Live SqueekChain network dashboard on Sepolia.</p>
+    </div>
+  </div>
+  <div class="refresh-bar">
+    <button type="button" id="refresh" class="btn btn-primary">Refresh now</button>
+    <label class="toggle">
+      <input type="checkbox" id="auto" checked>
+      <span>Auto-refresh every 15&nbsp;s</span>
+    </label>
+    <p class="meta" id="updated">Loading live data&hellip;</p>
+  </div>
+</header>
+
+<main id="main" class="grid" tabindex="-1">
+  <section class="card" aria-labelledby="wheel-title">
+    <div class="card-head">
+      <h2 id="wheel-title">Squeektoshi wheel</h2>
+      <span class="badge" id="wheel-badge" data-tone="neutral"><span class="dot" aria-hidden="true"></span><span id="wheel-state">Loading</span></span>
+    </div>
+    <div class="wheel-body">
+      <svg class="wheel-icon" id="wheel-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="3"/>
+        <circle cx="32" cy="32" r="21" fill="none" stroke="currentColor" stroke-width="1" opacity=".4"/>
+        <path d="M32 4v56M4 32h56M12.2 12.2l39.6 39.6M51.8 12.2 12.2 51.8" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+        <circle cx="32" cy="32" r="5" fill="currentColor"/>
+      </svg>
+      <dl class="metrics">
+        <div><dt>Rotation</dt><dd id="rpm">&ndash;</dd></div>
+        <div><dt>Speed</dt><dd id="speed">&ndash;</dd></div>
+        <div><dt>Distance</dt><dd id="distance">&ndash;</dd></div>
+      </dl>
+    </div>
+    <p class="note" id="wheel-note"></p>
+  </section>
+
+  <section class="card" aria-labelledby="block-title">
+    <div class="card-head">
+      <h2 id="block-title">Next block</h2>
+      <span class="badge" id="queue-badge" data-tone="neutral"><span class="dot" aria-hidden="true"></span><span id="queue-state">Loading</span></span>
+    </div>
+    <p class="figure" id="block-pct">&ndash;</p>
+    <div class="progress" id="block-progress" role="progressbar" aria-labelledby="block-title" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Loading">
+      <div class="progress-fill" id="block-fill"></div>
+    </div>
+    <dl class="facts">
+      <div><dt>Block height</dt><dd id="block-height">&ndash;</dd></div>
+      <div><dt>Blocks completed</dt><dd id="blocks-done">&ndash;</dd></div>
+      <div><dt>Rounds buffered</dt><dd id="rounds">&ndash;</dd></div>
+    </dl>
+    <p class="note" id="block-note"></p>
+  </section>
+
+  <section class="card" aria-labelledby="supply-title">
+    <div class="card-head">
+      <h2 id="supply-title">$SQK supply</h2>
+      <span class="badge" id="token-badge" data-tone="neutral"><span class="dot" aria-hidden="true"></span><span id="token-state">Loading</span></span>
+    </div>
+    <dl class="facts facts-lg">
+      <div><dt>Minted</dt><dd id="minted">&ndash;</dd></div>
+      <div><dt>Circulating</dt><dd id="circulating">&ndash;</dd></div>
+      <div><dt>Max cap</dt><dd id="max-cap">&ndash;</dd></div>
+    </dl>
+    <div class="progress progress-thin" id="cap-progress" role="progressbar" aria-label="Share of max cap minted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Not published">
+      <div class="progress-fill progress-still" id="cap-fill"></div>
+    </div>
+    <p class="note" id="supply-note"></p>
+  </section>
+
+  <section class="card span-all" aria-labelledby="settlements-title">
+    <div class="card-head card-head-wrap">
+      <h2 id="settlements-title">Settlements</h2>
+      <div class="tabs" role="tablist" aria-label="Time range">
+        <button type="button" role="tab" class="tab" id="tab-now" data-range="now" aria-selected="true" aria-controls="settlements-panel">Now</button>
+        <button type="button" role="tab" class="tab" id="tab-24h" data-range="24h" aria-selected="false" aria-controls="settlements-panel" tabindex="-1">24h</button>
+        <button type="button" role="tab" class="tab" id="tab-7d" data-range="7d" aria-selected="false" aria-controls="settlements-panel" tabindex="-1">7d</button>
+      </div>
+    </div>
+    <div id="settlements-panel" role="tabpanel" aria-labelledby="tab-now">
+      <dl class="facts facts-row">
+        <div><dt>Settlements</dt><dd id="sum-count">&ndash;</dd></div>
+        <div><dt>Work added</dt><dd id="sum-work">&ndash;</dd></div>
+        <div><dt>Blocks completed</dt><dd id="sum-blocks">&ndash;</dd></div>
+        <div><dt>Active rounds</dt><dd id="sum-active">&ndash;</dd></div>
+      </dl>
+      <div class="table-wrap" role="region" aria-labelledby="settlements-title" tabindex="0">
+        <table>
+          <thead>
+            <tr><th scope="col">Time</th><th scope="col">Round</th><th scope="col" class="num">Work added</th><th scope="col" class="num">Blocks</th><th scope="col">Transaction</th></tr>
+          </thead>
+          <tbody id="settlement-rows"></tbody>
+        </table>
+      </div>
+      <p class="note" id="settlements-note">Loading settlements&hellip;</p>
+    </div>
+  </section>
+
+  <section class="card span-all" aria-labelledby="activity-title">
+    <div class="card-head">
+      <h2 id="activity-title">Hourly activity</h2>
+      <p class="meta" id="activity-total">Last 24 hours</p>
+    </div>
+    <figure class="chart">
+      <ol class="bars" id="bars" aria-label="Settlements per hour, last 24 hours"></ol>
+      <div class="axis" aria-hidden="true"><span id="axis-start"></span><span id="axis-mid"></span><span id="axis-end"></span></div>
+      <figcaption class="note" id="activity-note">Loading activity&hellip;</figcaption>
+    </figure>
+  </section>
+
+  <section class="card span-all" aria-labelledby="contracts-title">
+    <div class="card-head">
+      <h2 id="contracts-title">Contracts on Sepolia</h2>
+    </div>
+    <div class="contract-groups">
+      <div>
+        <h3>Protocol</h3>
+        <ul class="contracts" id="contracts"></ul>
+      </div>
+      <div>
+        <h3>Authority</h3>
+        <ul class="contracts" id="authority"></ul>
+      </div>
+    </div>
+    <p class="note" id="contracts-note">Loading the deployment record&hellip;</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Data from <a href="https://api.squeekchain.com/v1/status">api.squeekchain.com</a>. Addresses open on Sepolia Etherscan. <span id="chain-meta"></span></p>
+</footer>
+
+<div class="visually-hidden" aria-live="polite" id="announcer"></div>
+</body>
+</html>

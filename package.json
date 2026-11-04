@@ -1,0 +1,14 @@
+{
+  "name": "squeekvision",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SqueekVision: a live SqueekChain network dashboard. Static, dependency-free single page.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/",
+    "check": "node scripts/build.mjs --check",
+    "typecheck": "npx --yes --package typescript@5.6.3 tsc -p jsconfig.json",
+    "preview": "python3 -m http.server 4173 --directory dist"
+  }
+}
